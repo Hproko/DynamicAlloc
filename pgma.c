@@ -3,17 +3,22 @@
 
 int main(void){
   printf(" ");
-  void *a, *b;
+  void *a, *b, *c;
   iniciaAlocador();
   // imprimeMapa();
   a=alocaMem(240);
-  // imprimeMapa();
-  // b=alocaMem(50);
-  // imprimeMapa();
+  imprimeMapa();
+  b=alocaMem(50);
+  imprimeMapa();
   liberaMem(a);
-  // imprimeMapa();
-  a=alocaMem(50);
-  // imprimeMapa();
+  liberaMem(b);
+  imprimeMapa();
+  b=alocaMem(100);
+  c=alocaMem(200);
+  imprimeMapa();
+  liberaMem(b);
+  liberaMem(c);
+  imprimeMapa();
 
   finalizaAlocador();
 

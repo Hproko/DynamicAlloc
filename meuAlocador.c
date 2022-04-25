@@ -24,51 +24,74 @@ void iniciaAlocador(){
 
 void *alocaMem(long int numBytes){
     
-    long int *percorre;
+    long int *percorre, *aux = atual;
 
-    if( atual + *(atual + 8) + 16 > topoHeap)
-        percorre = inicioHeap;
-    
-    else 
-        if(topoBrk == inicioHeap)
-            atual = NULL;
-        else
-            percorre = atual + *(atual + 8) + 16; 
 
-    while(percorre != atual){
-        if(*(percorre) == LIVRE && *(percorre+8) >= numBytes){
-            *(percorre) = 1;
-            atual = percorre;
-            return (void *)percorre + 16;
-        }
-        
+    if(inicioHeap == topoBrk) //Se a heap estiver vazia percorre = atual e nao entre no loop
+        percorre = atual;
+    else{
+
+        percorre = atual + *(atual + 8) + 16; //percorre aponta para o proximo nodo de atual
         if(percorre == topoHeap)
             percorre = inicioHeap;
-        else
-            percorre += *(percorre + 8) + 16;
-    }
-
-    atual = percorre;
-
-    topoHeap = percorre + 16 + numBytes;
-
-    int cont = 0;
+        }
     
-    while(topoBrk <= topoHeap){
-        cont++;
-        printf("Alocou 4k %d vezes\n", cont);
+    if(inicioHeap != topoHeap)
+        atual = NULL;
+    
+    while(percorre != atual){
+        
+        if(*(percorre) == LIVRE && *(percorre+8) >= numBytes){
+            *(percorre) = OCUPADO;
+            atual = percorre;
+            return (void *)(percorre + 16);
+        }
+        
+        if(percorre + *(percorre + 8) + 16 != topoHeap)
+            percorre += *(percorre + 8) + 16;
+        else
+            percorre = inicioHeap;
+        
+        atual = aux; //restaura o valor de atual
+    
+    }
+    
+    while(topoBrk <= percorre + 16 + numBytes){
         topoBrk += 4096;
-
         brk((void *) topoBrk);
     }
 
-    *(percorre) = 1;
-    *(percorre + 8) = numBytes;
-    topoHeap = percorre + 16 + numBytes;
-    printf("\nALOCADO:[%ld][%ld][DADOS]\n\n", *percorre, *(percorre + 8));
-    return (void *) percorre + 16;
+
+    *(topoHeap) = 1;
+    *(topoHeap + 8) = numBytes;
+    long int *ret = topoHeap + 16;
+    topoHeap = topoHeap + 16 + numBytes;
+    // printf("\nALOCADO:[%ld][%ld][DADOS]\n\n", *percorre, *(percorre + 8));
+    return (void *) ret;
     
 
+}
+
+void blockMerge(){
+
+    long int *percorre = inicioHeap;
+    long int *aux = percorre;
+    
+    //Testa se tem 0 ou 1 nodo na heap
+    if(percorre == topoHeap || percorre + *(percorre + 8) + 16 == topoHeap)
+        return;
+
+
+    while(percorre != topoHeap){
+
+        if(*(percorre) == LIVRE && aux + *(aux + 8) + 16 == percorre && *(aux) == LIVRE){
+            *(aux + 8) += *(percorre + 8) + 16;
+            atual = aux;
+        }
+
+        aux = percorre;
+        percorre += *(percorre + 8) + 16;
+    } 
 }
 
 
@@ -80,11 +103,12 @@ void finalizaAlocador(){
 
 
 void liberaMem(void *bloco){
-    long int *status = (long int *) (bloco - 16);
-    printf("\nLIBERANDO:[%ld][%ld][DADOS]\n\n", *status, *(status + 8));
+    long int *status = (long int *)bloco - 16;
+    // printf("\nLIBERANDO:[%ld][%ld][DADOS]\n\n", *status, *(status + 8));
     *status = 0;
-    printf("\nLIBERADO:[%ld][%ld][DADOS]\n\n", *status, *(status + 8));
-    return;
+    bloco = NULL;
+    blockMerge();
+    // printf("\nLIBERADO:[%ld][%ld][DADOS]\n\n", *status, *(status + 8));
 }
 
 void imprimeMapa() {
@@ -97,11 +121,11 @@ void imprimeMapa() {
         while(percorreHeap != topoHeap) {
                 long int alocadoOuDesalocado = *percorreHeap;
                 long int tamDataHeader  = *(percorreHeap+tamHeader);
-                printf("%ld\n", tamDataHeader);
+                // printf("%ld\n", tamDataHeader);
 
-                printf("0-%p e %p\n", percorreHeap, percorreHeap);
+                printf("%p\n", percorreHeap);
                 percorreHeap += tamHeader * 2;
-                printf("1-%p e %p\n", percorreHeap, percorreHeap);
+                // printf("1-%p e %p\n", percorreHeap, percorreHeap);
 
                 for(long int i = 0; i < tamHeader * 2; i++) printf("#");
 
@@ -113,4 +137,6 @@ void imprimeMapa() {
 
                 percorreHeap += tamDataHeader;
         }
+
+        printf("\n\n");
 }
