@@ -26,12 +26,18 @@ void *alocaMem(long int numBytes){
     
     long int *percorre, *aux = atual;
 
+    printf("atual %p\n", atual);
 
-    if(inicioHeap == topoBrk) //Se a heap estiver vazia percorre = atual e nao entre no loop
+    if(*(atual) == LIVRE && *(atual+8) >= numBytes){
+            *(atual) = OCUPADO;
+            return (void *)(atual + 16);
+    }
+
+    if(inicioHeap == topoHeap) //Se a heap estiver vazia percorre = atual e nao entre no loop
         percorre = atual;
     else{
 
-        percorre = atual + *(atual + 8) + 16; //percorre aponta para o proximo nodo de atual
+        percorre = (atual + *(atual + 8) + 16); //percorre aponta para o proximo nodo de atual
         if(percorre == topoHeap)
             percorre = inicioHeap;
         }
@@ -41,13 +47,14 @@ void *alocaMem(long int numBytes){
     
     while(percorre != atual){
         
+            // printf("percorre %p\n", percorre);
         if(*(percorre) == LIVRE && *(percorre+8) >= numBytes){
             *(percorre) = OCUPADO;
             atual = percorre;
             return (void *)(percorre + 16);
         }
         
-        if(percorre + *(percorre + 8) + 16 != topoHeap)
+        if((percorre + *(percorre + 8) + 16) != topoHeap)
             percorre += *(percorre + 8) + 16;
         else
             percorre = inicioHeap;
@@ -56,7 +63,7 @@ void *alocaMem(long int numBytes){
     
     }
     
-    while(topoBrk <= percorre + 16 + numBytes){
+    while(topoBrk <= topoHeap + 16 + numBytes){
         topoBrk += 4096;
         brk((void *) topoBrk);
     }
@@ -106,7 +113,6 @@ void liberaMem(void *bloco){
     long int *status = (long int *)bloco - 16;
     // printf("\nLIBERANDO:[%ld][%ld][DADOS]\n\n", *status, *(status + 8));
     *status = 0;
-    bloco = NULL;
     blockMerge();
     // printf("\nLIBERADO:[%ld][%ld][DADOS]\n\n", *status, *(status + 8));
 }
