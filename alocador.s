@@ -52,7 +52,7 @@
 	quebraLinha:	.string "\n"
 
 .section .text
-.globl iniciaAlocador, finalizaAlocador, alocaMem, imprimeMapa, liberaMem
+.globl iniciaAlocador, finalizaAlocador, alocaMem, imprimeMapa, liberaMem, blockMerge
 
 iniciaAlocador:
 	pushq %rbp
@@ -197,7 +197,7 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
  			#call printf
 
  			movq -16(%rbx), %r9 # r9 <- percorre
- 			cmpq $livre, (%r9)  # if(*(percorre) == LIVRE)
+ 			cmpq $0, (%r9)  # if(*(percorre) == LIVRE)
  			je verificaTamanhoBloco
  			jmp verificaTopoHeap
  			verificaTamanhoBloco: # *(percorre+8) >= numBytes
@@ -254,7 +254,7 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 
 					movq -8(%rbp), %r14
 					movq %r14, atual
-					jmp whileAloca
+					jmp whilePercorreHeap
 				elseVerificaTopoHeap:       # percorre = inicioHeap;
 					# printf
  					#movq $str29, %rdi
@@ -285,6 +285,7 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 				movq topoBrk, %rdi
 				movq $12, %rax
 				syscall                   # realiza syscall para aumentar o topo de brk
+				jmp whileAloca
 
 		retornaPonteiro:
 			# printf
@@ -344,8 +345,77 @@ liberaMem:
 	subq $16, %rax                     # addr - 16
 	movq $0, (%rax)                    # (addr - 16) <- 0
 
+	#call blockMerge
+
 	popq %rbp
 	ret
+
+blockMerge:
+	pushq %rbp
+	movq %rsp, %rbp
+	subq $16, %rsp
+
+	movq inicioHeap, %rbx
+	movq %rbp, %rax
+	subq $8, %rax                    # %rax <- -8rbp (percorre)
+	movq %rbx, %rax                  # percorre <- inicioHeap
+
+	movq %rax, %rbx					 # aux <- percorre
+	movq %rbp, %rcx
+	subq $16, %rcx                   # %rcx <- -16rbp (aux)
+	movq %rbx, %rcx	                 
+
+	cmpq topoHeap, %rax              # if(percorre == topoHeap)
+	je fim_block
+	jmp ifPercorreTopoHeap
+
+	ifPercorreTopoHeap:
+		movq %rax, %rdx              # if(percorre + *(percorre + 8) + 16 == topoHeap)
+		addq $8, %rdx                # percorre + 8
+		addq $16, %rax               # percorre + 16
+		addq %rax, (%rdx)            # percorre + 16 + *(percorre + 8)
+		#cmpq topoHeap, (%rdx)
+		je fim
+		jmp while
+
+	while:
+		movq inicioHeap, %rax        # percorre
+		cmpq topoHeap, %rax          # while(percorre != topoHeap)
+		jne ifBlocoPrincipal
+		jmp fim_block
+		ifBlocoPrincipal:
+			cmpq $0, (%rax)      # if(*(percorre) == LIVRE)
+			je ifComparaAux
+			jmp atualizaPercorreEAux
+			ifComparaAux:			 # if(aux + *(aux + 8) + 16 == percorre)
+				movq %rcx, %r8
+				addq $8, %r8         # r8 <- aux + 8
+				addq $16, %rcx       # aux + 16
+				addq %rcx, (%r8)     # aux + 16 + *(aux + 8)
+				cmpq %rax, (%r8)
+				je ifVerificaAux
+				jmp atualizaPercorreEAux
+				ifVerificaAux:      # if(*(aux) == LIVRE)
+					cmpq $0, (%rcx)
+					je atualizaAux 
+					jmp atualizaPercorreEAux
+					atualizaAux:
+						addq $16, (%r8) # *(aux + 8) += 16
+						movq (%rdx), %r9
+						addq %r9, (%r8)	# *(aux + 8) += 16 + *(percorre + 8)	
+						movq %r8, atual # atual <- aux
+
+		atualizaPercorreEAux:
+			movq %rax, %rcx   # aux <- percorre
+			addq $16, %rax    # percorre += 16
+			addq (%rdx), %rax # percorre += 16 + *(percorre + 8)
+			jmp while
+	#movq $str9, %rdi
+	#call printf
+	fim_block:
+		addq $16, %rsp
+		popq %rbp
+		ret
 
 
 
