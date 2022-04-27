@@ -11,10 +11,10 @@ int main(void){
   imprimeMapa();
   //b=alocaMem(50);
   //imprimeMapa();
-  /*liberaMem(a);
-  liberaMem(b);
+  liberaMem(a);
+  //liberaMem(b);
   imprimeMapa();
-  b=alocaMem(100);
+  /*b=alocaMem(100);
   c=alocaMem(200);
   imprimeMapa();
   liberaMem(b);

@@ -9,7 +9,9 @@
 	alocado: .quad 1
 	quatrok: .quad 4096
 	numBytes: .quad 0
+	addrRecebido: .quad 0
 	str: .string "Inicio Heap: %p\n"
+	strFree: .string "End. liberado: %p\n"
 	str0: .string "Nao existe nada alocado\n"
 	str1: .string "%ld\n"
 	str2: .string "%p\n"
@@ -50,7 +52,7 @@
 	quebraLinha:	.string "\n"
 
 .section .text
-.globl iniciaAlocador, finalizaAlocador, alocaMem, imprimeMapa
+.globl iniciaAlocador, finalizaAlocador, alocaMem, imprimeMapa, liberaMem
 
 iniciaAlocador:
 	pushq %rbp
@@ -326,6 +328,26 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
  		addq $16, %rsp
 		popq %rbp
 		ret
+
+liberaMem:
+	pushq %rbp
+	movq %rsp, %rbp
+
+	movq %rdi, addrRecebido
+
+	movq addrRecebido, %rax
+
+	#movq (%rax), %rsi
+	#movq $str1, %rdi
+	#call printf
+
+	subq $16, %rax                     # addr - 16
+	movq $0, (%rax)                    # (addr - 16) <- 0
+
+	popq %rbp
+	ret
+
+
 
 imprimeMapa:
 	pushq %rbp
