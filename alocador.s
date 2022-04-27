@@ -57,84 +57,47 @@ finalizaAlocador:
 	ret
 
 alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
+	# -16(%rbp) ---> percorre
+	#  -8(%rbp) ---> aux
+	#  %rcx ---> numBytes
+	#  %rax ---> aux
+	#  %rbx ---> atual
 	pushq %rbp
 	movq %rsp, %rbp
+	subq $16, %rsp            # 2 var. local
 
-	movq %rdi, %r8           # rcx   <- numBytes
-
-	movq %r8, %rsi
+	movq %rdi, %r8            # rcx   <- numBytes
+	movq %r8, %rsi            # printf
  	movq $str8, %rdi
  	call printf
 
-
-	subq $16, %rsp            # 2 var. local
-
 	movq atual, %rbx          # rbx   <- atual
-	movq %rbp, %rax           # 
+	movq %rbp, %rax            
 	subq $8, %rax             # rax  <- -8(rbp) = aux
 	movq %rbx, (%rax)         # *aux <- atual
 
-	#movq $0, %rdx	          # para entrar no if 2 comentar essas linhas
-	#movq $0, (%rax)
+ 	# funcionando
+	movq topoHeap, %rsi # printf
+ 	movq $str10, %rdi
+	call printf
 
-	cmpq %rdx, (%rax)         # if(*(atual) == LIVRE)
-	je ifLivre
-	jmp ifComparaHeap
- 	
- 	ifLivre:                  # if(1) testado e funcionando
+ 	movq inicioHeap, %rdx
+ 	cmpq topoHeap, %rdx  #if(inicioHeap == topoHeap)
+ 	je atualizaPercorre
+ 	jmp elseComparaHeap
 
- 		movq $str9, %rdi
+ 	atualizaPercorre:
+ 		movq $str13, %rdi
 		call printf
 
-		#movq %r8, %rsi
- 		#movq $str8, %rdi
- 		#call printf
+ 		movq %rbx, -16(%rbp) # percorre <- atual
+ 		jmp ifComparaInicioETopo
 
-		movq atual, %rbx          # rbx  <- atual
-		movq %rbp, %rax           # 
-		subq $8, %rax             # rax  <- -8(rbp) = aux
-		movq %rbx, (%rax)         # *aux <- atual
-
- 		movq %rax, %rdx            # rdx <- atual
- 		#addq $8, %rdx              # atual + 8
- 		#movq $0, 8(%rdx)
-
- 		cmpq %rcx, 8(%rdx)     # *(atual+8) >= numBytes
- 		jge cabeNoBloco
- 		jmp ifComparaHeap
-
- 		cabeNoBloco:
- 			movq $1, (%rax)
- 			addq $16, %rax
- 			jmp fim
-
- 	ifComparaHeap:           # funcionando
-		movq topoHeap, %rsi
- 		movq $str10, %rdi
-		call printf
-
- 		movq inicioHeap, %rdx
- 		cmpq topoHeap, %rdx  #if(2)(inicioHeap == topoHeap)
- 		je atualizaPercorre
- 		jmp elseComparaHeap
-
- 		atualizaPercorre:
- 			movq $str13, %rdi
-			call printf
-
- 			movq atual, %rbx
- 			movq %rbp, %rdx
- 			subq $16, %rdx
- 			movq %rbx, (%rdx) # percorre <- atual
- 			#movq -8(%rbp), %rax
- 			jmp ifComparaInicioETopo
-
- 	elseComparaHeap:          # não testado
- 		movq 8(%rax), %r9     # r9 <- *(atual + 8)
- 		addq $16, %r9		  # r9 <- *(atual + 8) + 16	
- 		movq atual, %rbx
- 		addq %r9, -16(%rbp)	  # percorre <- r9
- 		addq %rbx, -16(%rbp)  # percorre <- r9 + atual
+ 	elseComparaHeap:          # não testado	
+ 		addq $16, %rbx        # atual + 16
+ 		movq 8(%rbx), %rdx    # rdx <- *(atual + 8)
+ 		addq %rbx, %rdx       # rdx <- *(atual + 8) + atual + 16
+ 		movq %rdx, -16(%rbp)  # percorre <- rdx
 
  		movq topoHeap, %rdx
  		cmpq %rdx, -16(%rbp)  # if(percorre == topoHeap)
@@ -142,13 +105,14 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
  		jmp ifComparaInicioETopo
 
  		atualizaPercorre2:
- 			movq %rax, -16(%rbp)
+ 			movq inicioHeap, %rdx
+ 			movq %rdx, -16(%rbp)
  			jmp ifComparaInicioETopo
 
- 	ifComparaInicioETopo: # if(inicioHeap != topoHeap)
- 		movq inicioHeap, %rbx
+ 	ifComparaInicioETopo:     # if(inicioHeap != topoHeap)
+ 		movq inicioHeap, %r8
  		movq topoHeap, %rdx
- 		cmpq %rdx, %rbx
+ 		cmpq %rdx, %r8
  		jne atualizaAtual
  		jmp fim
 
