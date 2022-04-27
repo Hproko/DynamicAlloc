@@ -7,7 +7,8 @@ int main(void){
   iniciaAlocador();
   // imprimeMapa();
   a=alocaMem(240);
-  imprimeMapa();
+  printf("End. retornado: %p\n", a);
+  /*imprimeMapa();
   b=alocaMem(50);
   imprimeMapa();
   liberaMem(a);
@@ -18,7 +19,7 @@ int main(void){
   imprimeMapa();
   liberaMem(b);
   liberaMem(c);
-  imprimeMapa();
+  imprimeMapa();*/
 
   finalizaAlocador();
 

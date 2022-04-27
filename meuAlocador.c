@@ -28,10 +28,10 @@ void *alocaMem(long int numBytes){
 
     printf("atual %p\n", atual);
 
-    if(*(atual) == LIVRE && *(atual+8) >= numBytes){
+    /*if(*(atual) == LIVRE && *(atual+8) >= numBytes){
             *(atual) = OCUPADO;
             return (void *)(atual + 16);
-    }
+    }*/
 
     if(inicioHeap == topoHeap) //Se a heap estiver vazia percorre = atual e nao entre no loop
         percorre = atual;
