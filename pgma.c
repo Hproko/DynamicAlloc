@@ -8,10 +8,10 @@ int main(void){
   // imprimeMapa();
   a=alocaMem(240);
   printf("End. retornado: %p\n", a);
-  /*imprimeMapa();
-  b=alocaMem(50);
   imprimeMapa();
-  liberaMem(a);
+  //b=alocaMem(50);
+  //imprimeMapa();
+  /*liberaMem(a);
   liberaMem(b);
   imprimeMapa();
   b=alocaMem(100);
