@@ -21,6 +21,15 @@
 	str11: .string "-8rbp: %p\n"
 	str12: .string "-16rbp: %p\n"
 	str13: .string "entrou no if 2\n"
+	str14: .string "entrou em if(inicioHeap == topoHeap)\n"
+	str15: .string "entrou em percorre = atual\n"
+	str16: .string "entrou em else\n"
+	str17: .string "entrou em percorre = (atual + *(atual + 8) + 16)\n"
+	str18: .string "entrou em if(percorre == topoHeap)\n"
+	str19: .string "entrou em percorre = inicioHeap\n"
+	str20: .string "entrou em if(inicioHeap != topoHeap)\n"
+	str21: .string "entrou em atual = NULL;\n"
+
 
 .section .text
 .globl iniciaAlocador, finalizaAlocador, alocaMem
@@ -83,21 +92,36 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 
  	movq inicioHeap, %rdx
  	cmpq topoHeap, %rdx  #if(inicioHeap == topoHeap)
+
+ 	movq $str14, %rdi
+	call printf
+
  	je atualizaPercorre
  	jmp elseComparaHeap
 
  	atualizaPercorre:
- 		movq $str13, %rdi
+ 		movq %rbx, -16(%rbp) # percorre <- atual
+
+ 		movq $str15, %rdi
 		call printf
 
- 		movq %rbx, -16(%rbp) # percorre <- atual
  		jmp ifComparaInicioETopo
 
  	elseComparaHeap:          # não testado	
- 		addq $16, %rbx        # atual + 16
- 		movq 8(%rbx), %rdx    # rdx <- *(atual + 8)
- 		addq %rbx, %rdx       # rdx <- *(atual + 8) + atual + 16
- 		movq %rdx, -16(%rbp)  # percorre <- rdx
+
+ 		movq $str16, %rdi
+		call printf
+
+		movq atual, %rbx
+		movq 8(%rbx), %r13     # r13 <- atual + 8
+		#movq (%rdx), %rcx  
+ 		#movq 16(%r13), %r13        # atual + 16
+ 		#movq 8(%rbx), %rdx    # rdx <- *(atual + 8)
+ 		#addq %r13, %rdx       # rdx <- *(atual + 8) + atual + 16
+ 		#movq %rdx, -16(%rbp)  # percorre <- rdx
+
+ 		movq $str17, %rdi
+		call printf
 
  		movq topoHeap, %rdx
  		cmpq %rdx, -16(%rbp)  # if(percorre == topoHeap)
@@ -113,12 +137,54 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
  		movq inicioHeap, %r8
  		movq topoHeap, %rdx
  		cmpq %rdx, %r8
- 		jne atualizaAtual
- 		jmp fim
+ 		#jne atualizaAtual
+ 		#jmp fim
 
- 		atualizaAtual:
- 			movq $0, atual # atual <- NULL
- 			jmp fim
+ 		#atualizaAtual:
+ 		#	movq $0, atual # atual <- NULL
+ 			#jmp whilePercorreHeap
+
+
+ 	movq $str3, %rdi
+ 	call printf
+
+ 	movq $0, %rbx
+ 	movq $1, %r12
+ 	whilePercorreHeap:
+ 		movq $str3, %rdi
+ 		call printf
+
+
+ 		cmpq %rbx, %r12    #while(percorre != atual)
+ 		jne verificaEspaco
+ 		#jmp whileAloca
+ 		verificaEspaco:
+ 			movq -16(%rbx), %r9 # r9 <- percorre
+ 			cmpq $livre, (%r9)  # if(*(percorre) == LIVRE
+ 			je verificaTamanhoBloco
+ 			#jmp verificaTopoHeap
+ 			verificaTamanhoBloco:
+ 				movq 8(%r9), %r10 # r10 <- percorre + 8
+ 				cmpq %rcx, (%r10) # *(percorre+8) >= numBytes
+ 				jge alocaBlocoLivre
+ 				#jmp verificaTopoHeap
+ 				alocaBlocoLivre:
+ 					movq $alocado, (%r9) # *(percorre) = OCUPADO;
+ 					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
  		
