@@ -33,6 +33,19 @@
 	str20: .string "entrou em if(inicioHeap != topoHeap) - 20\n"
 	str21: .string "entrou em atual = NULL - 21\n"
 	str22: .string "entrou em while(percorre != atual) - 22\n"
+	str23: .string "entrou em if(*(percorre) == LIVRE && *(percorre+8) >= numBytes) - 23\n"
+	str24: .string "entrou em if(*(percorre+8) >= numBytes))- 24\n"
+	str25: .string "entrou em *(percorre) = OCUPADO; - 25\n"
+	str26: .string "entrou em if((percorre + *(percorre + 8) + 16) != topoHeap) - 26\n"
+	str27: .string "entrou em percorre += *(percorre + 8) + 16; - 27\n"
+	str28: .string "entrou em atual = aux; - 28\n"
+	str29: .string "entrou em percorre = inicioHeap; - 29\n"
+	str30: .string "entrou em while(topoBrk <= topoHeap + 16 + numBytes) - 30\n"
+	str31: .string "entrou em topoBrk += 4096; - 31\n"
+	str32: .string "entrou em *(topoHeap) = 1; - 32\n"
+
+
+
 	inteiro:		.string "%ld \n"
 	quebraLinha:	.string "\n"
 
@@ -73,7 +86,6 @@ finalizaAlocador:
 alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 	# -16(%rbp) ---> percorre
 	#  -8(%rbp) ---> aux
-	
 	#  %rax ---> aux
 	#  %rbx ---> atual
 	pushq %rbp
@@ -122,8 +134,8 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 		addq $8, %r13     # r13 <- atual + 8
 		movq %rbx, -16(%rbp)  # percorre <- atual
 		addq $16, -16(%rbp)   # percorre <- atual + 16
-		#movq (%r13), %r14    
-		#movq %r14, -16(%rbp) # percorre <- atual + 16 + *(atual + 8)
+		movq (%r13), %r14    
+		movq %r14, -16(%rbp) # percorre <- atual + 16 + *(atual + 8)
 
  		# printf
  		#movq $str17, %rdi
@@ -168,57 +180,93 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 			jmp whilePercorreHeap
 
  	whilePercorreHeap:
+ 		# printf
+ 		#movq $str22, %rdi
+ 		#call printf
+
 	 	movq atual, %rbx
 		movq -16(%rbp), %r12
  		cmpq %rbx, %r12    # while(percorre != atual)
  		jne verificaEspaco
  		jmp whileAloca
  		verificaEspaco:
+ 			# printf
+ 			#movq $str23, %rdi
+ 			#call printf
+
  			movq -16(%rbx), %r9 # r9 <- percorre
  			cmpq $livre, (%r9)  # if(*(percorre) == LIVRE)
  			je verificaTamanhoBloco
  			jmp verificaTopoHeap
  			verificaTamanhoBloco: # *(percorre+8) >= numBytes
+ 				# printf
+ 				#movq $str24, %rdi
+ 				#call printf
+
  				movq 8(%r9), %r10 # r10 <- percorre + 8
  				movq numBytes, %r11
  				cmpq %r11, (%r10) # *(percorre+8) >= numBytes
  				jge alocaBlocoLivre
  				jmp verificaTopoHeap
  				alocaBlocoLivre:
+ 					# printf
+ 					#movq $str25, %rdi
+ 					#call printf
+
  					movq $alocado, (%r9) # *(percorre) = OCUPADO;
 					movq %r9, %rbx
 					movq %rbx, atual     # atual <- percorre
 					addq $16, -16(%rbp)   # percorre + 16
 					jmp fim
 			verificaTopoHeap:
+				# printf
+ 				#movq $str26, %rdi
+ 				#call printf
+
 				movq -16(%rbp), %r11      # r11 <- percorre
 				movq %r11, %r12
 				addq $8, %r12            # percorre + 8
-				#movq (%r12), %r13        # *(percorre + 8)
+				movq (%r12), %r13        # *(percorre + 8)
 				addq $16, %r11           # percorre + 16
 				addq %r13, %r11          # r11 <- (percorre + *(percorre + 8) + 16)
 				cmpq topoHeap, %r11      # if((percorre + *(percorre + 8) + 16) != topoHeap)
 				jne atualizaPercorre3
 				jmp elseVerificaTopoHeap
 				atualizaPercorre3:
+					# printf
+ 					#movq $str27, %rdi
+ 					#call printf
+
 					movq -16(%rbp), %r11      # r11 <- percorre
 					movq %r11, %r12
 					addq $8, %r12            # percorre + 8
 					addq $16, %r11           # percorre + 16
-					#movq (%r12), %r13       # *(percorre + 8)
+					movq (%r12), %r13       # *(percorre + 8)
 					addq %r13, -16(%rbp)
 					addq %r11, -16(%rbp)     # percorre += *(percorre + 8) + 16;
 					jmp atualizaAtual2
 				atualizaAtual2:              # atual = aux;
+					# printf
+ 					#movq $str28, %rdi
+ 					#call printf
+
 					movq -8(%rbp), %r14
 					movq %r14, atual
 					jmp whileAloca
 				elseVerificaTopoHeap:       # percorre = inicioHeap;
+					# printf
+ 					#movq $str29, %rdi
+ 					#call printf
+
 					movq topoHeap, %r10
 					movq %r10, -16(%rbp)
 					jmp atualizaAtual
 		
 		whileAloca:
+			# printf
+ 			#movq $str30, %rdi
+ 			#call printf
+
 			movq topoHeap, %r15
 			addq $16, %r15
  			addq numBytes, %r15                # topoHeap + 16 + numBytes
@@ -226,6 +274,10 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 			jle atualizaBrk
 			jmp retornaPonteiro
 			atualizaBrk:
+				# printf
+ 				#movq $str31, %rdi
+ 				#call printf
+
 				addq $quatrok, %r8
 				movq %r8, topoBrk         # topoBrk += 4096;
 				movq topoBrk, %rdi
@@ -233,9 +285,16 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 				syscall                   # realiza syscall para aumentar o topo de brk
 
 		retornaPonteiro:
+			# printf
+ 			#movq $str32, %rdi
+ 			#call printf
+
 			movq topoHeap, %r9
 			movq $1, (%r9)                # *(topoHeap) = 1;
 			addq $8, %r9                  # topoHeap + 8
+
+			#movq $str9, %rdi
+			#call printf
 
 			#movq numBytes, %rsi
 			#movq $str8, %rdi
@@ -243,6 +302,7 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 
 			movq numBytes, %r13
 			movq %r13, (%r9)              # *(topoHeap + 8) = numBytes;
+
 			movq %rbp, %r10
 			subq $24, %r10                # r10 <- -24(rbp) = ret
 			movq topoHeap, %r11
@@ -262,7 +322,7 @@ alocaMem:                     # no pgma.c colocar printf("Aloca: %p\n", a);
 		#call printf
 
  		movq %r10, %rax                   # *** r10 = ret ***
-		#movq (%rax), %rax
+		movq (%rax), %rax
  		addq $16, %rsp
 		popq %rbp
 		ret

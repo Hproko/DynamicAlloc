@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int main(void){
-  printf(" ");
+  //printf(" ");
   void *a, *b, *c;
   iniciaAlocador();
   // imprimeMapa();
