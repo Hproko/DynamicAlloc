@@ -9,17 +9,17 @@ int main(void){
   a=alocaMem(240);
   printf("End. retornado: %p\n", a);
   imprimeMapa();
-  //b=alocaMem(50);
-  //imprimeMapa();
-  liberaMem(a);
-  //liberaMem(b);
+  b=alocaMem(50);
   imprimeMapa();
-  /*b=alocaMem(100);
+  liberaMem(a);
+  liberaMem(b);
+  imprimeMapa();
+  b=alocaMem(100);
   c=alocaMem(200);
   imprimeMapa();
   liberaMem(b);
   liberaMem(c);
-  imprimeMapa();*/
+  imprimeMapa();
 
   finalizaAlocador();
 
