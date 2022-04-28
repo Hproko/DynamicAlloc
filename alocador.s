@@ -295,57 +295,70 @@ blockMerge:
 	pushq %rbp
 	movq %rsp, %rbp
 	subq $16, %rsp
-	# r8 = percorre
-	# r9 = aux
-	# rax = percorre + 8
-	# rbx = aux + 8
-	movq inicioHeap, %r8       # percorre <- inicioHeap
-	movq %r8, %r9              # aux <- percorre
-	movq %r8, %rax
-	addq $8, %rax              # rax <- percorre + 8
-	movq %r9, %rbx
-	addq $8, %rbx              # rbx <- aux + 8
 
-	cmpq topoHeap, %r8         # if(percorre == topoHeap)
+	movq inicioHeap, %r8
+	movq %r8, percorre
+	movq percorre, %r9 # aux = percorre
+
+	movq percorre, %r8
+	cmpq topoHeap, %r8 # if(percorre == topoHeap)
 	je fimBlockMerge
 
-	movq (%rax), %rcx          # rcx <- *(percorre + 8)
-	addq $16, %rcx			   # rcx <- *(percorre + 8) + 16
-	addq %rax, %rcx            # rcx <- *(percorre + 8) + 16 + percorre
-	cmpq topoHeap, %rcx        # if(percorre + *(percorre + 8) + 16 == topoHeap)
+	movq percorre, %r10 # r10 = percorre
+	movq %r10, %r12
+	addq $8, %r12       # r10 = percorre + 8
+	movq (%r12), %r12   # r10 = *(percorre + 8)
+	addq $16, %r12      # r10 = *(percorre + 8) + 16
+	movq %r10, %r13
+	addq %r12, %r13
+	cmpq topoHeap, %r13 # if(percorre + *(percorre + 8) + 16 == topoHeap)
 	je fimBlockMerge
+	jne whileBlockMerge
 
-	whileBlockMerge:
-		cmpq topoHeap, %r8    # while(percorre != topoHeap)
+	whileBlockMerge:        # while(percorre != topoHeap)
+		movq percorre, %r8
+		cmpq topoHeap, %r8
 		je fimBlockMerge
 
-		movq (%r8), %r10      # *percorre
-		cmpq $0, %r10         # if(*(percorre) == LIVRE)
-		jne atualizaPonteiros
+		movq (%r8), %r8 # *(percorre)
+		cmpq $0, %r8    #  if(*(percorre) == LIVRE)
+		jne atualizaPercorre
 
-		movq (%rbx), %r11 # r11 <- *(aux + 8)
-		addq $16, %r11    # r11 <- *(aux + 8) + 16
-		addq %rbx, %r11   # r11 <- *(aux + 8) + 16 + aux
-		cmpq %r8, %r11    # if(aux + *(aux + 8) + 16 == percorre)
-		jne atualizaPonteiros
+		movq %r9, %rax  # rax = aux
+		movq %rax, %rbx
+		addq $8, %rbx   # rbx = aux + 8
+		movq (%rbx), %rbx # *(aux + 8)
+		addq $16, %rbx    # *(aux + 8) + 16
+		movq %rax, %rcx
+		addq %rbx, %rcx
+		cmpq percorre, %rcx # if(aux + *(aux + 8) + 16 == percorre)
+		jne atualizaPercorre
 
-		movq (%r9), %r12  # *aux
-		cmpq $0, %r12     # if(*(aux) == LIVRE)
-		jne atualizaPonteiros
+		movq %r9, %rdx
+		movq (%rdx), %rdx # *(aux)
+		cmpq $0, %rdx       # if(*(aux) == LIVRE)
+		jne atualizaPercorre
 
-		movq (%rax), %r13 # *(percorre + 8)
-		addq $16, %r13    # *(percorre + 8) + 16
-		addq %r13, (%rbx) # *(aux + 8) += *(percorre + 8) + 16;
-		movq %r9, atual   # atual = aux
-		jmp atualizaPonteiros
+		movq percorre, %r10 # r10 = percorre
+		movq %r10, %r12
+		addq $8, %r12       # r12 = percorre + 8
+		movq (%r12), %r12   # r12 = *(percorre + 8)
+		addq $16, %r12      # r12 = *(percorre + 8) + 16
+		movq %r9, %r13
+		addq $8, %r13       # aux + 8
+		addq %r12, (%r13)   # *(aux + 8) += *(percorre + 8) + 16;
+		movq %r9, atual     # atual = aux;
 
-		atualizaPonteiros:
-			movq %r8, %r9 # aux = percorre
-			movq (%rax), %r14 # r14 <- *(percorre + 8)
-			addq $16, %r14    # r14 <- *(percorre + 8) + 16
-			addq %r14, %r8    # percorre += *(percorre + 8) + 16
-			#jmp whileBlockMerge
-		
+		atualizaPercorre:
+			movq percorre, %r9 # aux = percorre;
+			movq percorre, %r10 # r10 = percorre
+			movq %r10, %r12
+			addq $8, %r12       # r12 = percorre + 8
+			movq (%r12), %r12   # r12 = *(percorre + 8)
+			addq $16, %r12      # r12 = *(percorre + 8) + 16
+			addq %r12, percorre
+			jmp whileBlockMerge
+
 
 	fimBlockMerge:
 		addq $16, %rsp
