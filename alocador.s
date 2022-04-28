@@ -81,7 +81,10 @@ iniciaAlocador:
 finalizaAlocador:
 	pushq %rbp
 	movq %rsp, %rbp
-
+	
+	movq inicioHeap, %rax
+	movq %rax, topoHeap
+	movq %rax, topoBrk
 	movq inicioHeap, %rdi      # Restaura brk
 	movq $12, %rax
 	syscall
@@ -454,9 +457,6 @@ imprimeMapa:
 			fimImprimes:
 			movq $quebraLinha, %rdi
 			call printf
-			
-			movq $quebraLinha, %rdi
-			call printf
 	
 			movq (%r14), %rax
 			addq %rax, percorreHeap
@@ -464,5 +464,11 @@ imprimeMapa:
 			jmp inicioMapaHeap
 		
 		fimImprimeMapa:
+		movq $quebraLinha, %rdi
+		call printf
+
+		movq $quebraLinha, %rdi
+		call printf
+
 		popq %rbp
 		ret
