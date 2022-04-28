@@ -12,7 +12,7 @@ long int *atual;
 
 
 void iniciaAlocador(){
-    // printf("\n");
+    printf("Iniciando Heap!\n");
     inicioHeap = sbrk(0);
     // printf("Endereco inicioHeap: %p\n", inicioHeap);
     topoHeap = inicioHeap;
@@ -26,18 +26,20 @@ void *alocaMem(long int numBytes){
     
     long int *percorre, *aux = atual;
 
-    printf("atual %p\n", atual);
+    // printf("atual %p\n", atual);
 
-    /*if(*(atual) == LIVRE && *(atual+8) >= numBytes){
-            *(atual) = OCUPADO;
-            return (void *)(atual + 16);
-    }*/
 
     if(inicioHeap == topoHeap) //Se a heap estiver vazia percorre = atual e nao entre no loop
         percorre = atual;
     else{
 
+        if(*(atual) == LIVRE && *(atual+8) >= numBytes){
+            *(atual) = OCUPADO;
+            return (void *)(atual + 16);
+        }
+
         percorre = (atual + *(atual + 8) + 16); //percorre aponta para o proximo nodo de atual
+        
         if(percorre == topoHeap)
             percorre = inicioHeap;
         }
